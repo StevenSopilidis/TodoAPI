@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using TodoAPI.Data;
+using TodoAPI.Repositories;
 using TodoAPI.Services;
 
 namespace TodoAPI.Extensions
@@ -15,8 +16,9 @@ namespace TodoAPI.Extensions
                 opts.UseNpgsql(config.GetConnectionString("DB_CONNECTION_STRING"));
             });
 
-            services.AddScoped<ITokenService, TokenService>();
-            
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddScoped<IUserRepo, UserRepo>();
+
             return services;
         }
     }

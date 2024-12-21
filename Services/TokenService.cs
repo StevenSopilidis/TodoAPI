@@ -12,7 +12,7 @@ namespace TodoAPI.Services
 {
     public class TokenService : ITokenService
     {
-        public IConfiguration _config { get; set; }
+        private readonly IConfiguration _config;
 
         public TokenService(IConfiguration config) {
             _config = config;
