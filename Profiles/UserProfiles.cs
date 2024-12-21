@@ -13,6 +13,7 @@ namespace TodoAPI.Profiles
     {
         public UserProfiles() {
             CreateMap<CreateUserDto, User>();
+            CreateMap<User, UserCreatedDto>();
             CreateMap<User, UserDto>();
         }
     }

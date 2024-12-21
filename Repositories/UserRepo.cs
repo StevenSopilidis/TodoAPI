@@ -29,6 +29,12 @@ namespace TodoAPI.Repositories
             return result.Errors; 
         }
 
+        public async Task<User?> GetUserAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            return user;
+        }
+
         public async Task<bool> UsernameOrEmailUsedAsync(string username, string email)
         {
             var user = await _userManager.Users.SingleOrDefaultAsync(u => u.UserName == username || u.Email == email);

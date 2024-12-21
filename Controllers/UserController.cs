@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using TodoAPI.Dtos;
 using TodoAPI.Models;
 using TodoAPI.Repositories;
+using TodoAPI.Services;
 
 namespace TodoAPI.Controllers
 {
@@ -20,7 +22,7 @@ namespace TodoAPI.Controllers
         private readonly ILogger<UserController> _logger;
         private readonly IUserRepo _userRepo;
 
-        public UserController(ILogger<UserController> logger, IUserRepo userRepo)
+        public UserController(IUserRepo userRepo, IMapper mapper, ILogger<UserController> logger)
         {
             _logger = logger;
             _userRepo = userRepo;
@@ -37,16 +39,12 @@ namespace TodoAPI.Controllers
             if (errors.Any())
                 return BadRequest(errors);
 
-            return CreatedAtAction(nameof(Login), new UserDto{
+            return CreatedAtAction(nameof(AuthController.Login), new UserCreatedDto{
                 Username= dto.Username, 
                 Email= dto.Email
             });
         }
 
-        [AllowAnonymous]
-        [HttpPost("login")]
-        public async Task<IActionResult> Login() {
-            throw new NotImplementedException();
-        }
+
     }
 }

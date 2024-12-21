@@ -30,18 +30,22 @@ namespace TodoAPI.Extensions
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"]));
 
             // configure endpoint authentication via jwt bearer token
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(opt => {
-                   opt.TokenValidationParameters = new TokenValidationParameters {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey =  key,
-                        ValidateIssuer = false,
-                        ValidateAudience = false
-                   }; 
-                });
+            services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })        
+            .AddJwtBearer(opt => {
+                opt.TokenValidationParameters = new TokenValidationParameters {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey =  key,
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                }; 
+            });
 
             services.AddScoped<ITokenService, TokenService>();
-            
+
             return services;
         }
     }
