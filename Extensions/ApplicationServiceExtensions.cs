@@ -18,6 +18,7 @@ namespace TodoAPI.Extensions
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddScoped<IUserRepo, UserRepo>();
+            services.AddScoped<ITodoRepo, TodoRepo>();
 
             return services;
         }

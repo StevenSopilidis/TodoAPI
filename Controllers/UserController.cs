@@ -39,12 +39,16 @@ namespace TodoAPI.Controllers
             if (errors.Any())
                 return BadRequest(errors);
 
-            return CreatedAtAction(nameof(AuthController.Login), new UserCreatedDto{
-                Username= dto.Username, 
-                Email= dto.Email
-            });
+            return CreatedAtAction(
+                actionName: nameof(AuthController.Login),
+                controllerName: "Auth",
+                routeValues: null,
+                value: new UserCreatedDto
+                {
+                    Username = dto.Username,
+                    Email = dto.Email
+                }
+            );
         }
-
-
     }
 }

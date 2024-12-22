@@ -11,7 +11,7 @@ namespace TodoAPI.Repositories
     public interface IUserRepo
     {
         Task<bool> UsernameOrEmailUsedAsync(string username, string email);
-        Task<IEnumerable<IdentityError>> CreateUserAsync(CreateUserDto dto);
+        Task<IEnumerable<IdentityError>?> CreateUserAsync(CreateUserDto dto);
         Task<User?> GetUserAsync(string email);
     }
 }

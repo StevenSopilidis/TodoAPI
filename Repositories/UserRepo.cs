@@ -14,18 +14,24 @@ namespace TodoAPI.Repositories
     {
         private readonly UserManager<User> _userManager;
         private readonly IMapper _mapper;
+        private readonly ILogger<UserRepo> _logger;
 
-        public UserRepo(UserManager<User> userManager, IMapper mapper) {
+        public UserRepo(UserManager<User> userManager, IMapper mapper, ILogger<UserRepo> logger) {
             _userManager = userManager;
             _mapper = mapper;
+            _logger = logger;
         }
 
-        public async Task<IEnumerable<IdentityError>> CreateUserAsync(CreateUserDto dto)
+        public async Task<IEnumerable<IdentityError>?> CreateUserAsync(CreateUserDto dto)
         {
             var newUser = _mapper.Map<User>(dto);
         
             var result = await _userManager.CreateAsync(newUser, dto.Password);
             
+            if (result.Errors is not null) {
+                _logger.LogError(result.Errors.ToString());
+            }
+
             return result.Errors; 
         }
 
