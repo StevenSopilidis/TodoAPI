@@ -53,7 +53,10 @@ namespace TodoAPI.Repositories
 
         public async Task<TodoDto?> GetTodoAsync(Guid id, Guid userId)
         {
-            var todo = await _context.Todos.Include(t => t.User).SingleOrDefaultAsync(t => t.Id == id);
+            var todo = await _context.Todos.AsNoTracking().Include(t => t.User).SingleOrDefaultAsync(t => t.Id == id);
+
+            if (todo is null)
+                return null;
 
             if (todo.User.Id != userId.ToString())
                 return null;
