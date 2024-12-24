@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using TodoAPI.Data;
 using TodoAPI.Dtos;
 using TodoAPI.Models;
@@ -40,19 +41,28 @@ namespace TodoAPI.Repositories
             return _mapper.Map<TodoItemDto>(todoItem);
         }
 
-        public Task<bool> DeleteTodoItemAsync(TodoItem todoItem)
+        public async Task<bool> DeleteTodoItemAsync(TodoItem todoItem)
         {
-            throw new NotImplementedException();
+            _context.TodoItems.Remove(todoItem);
+
+            var deleted = await _context.SaveChangesAsync() > 0;
+            return deleted;
         }
 
-        public Task<TodoItemDto?> GetTodoItemAsync(Guid id)
+        public async Task<TodoItem?> GetTodoItemAsync(Guid id, Guid todoId, string userId)
         {
-            throw new NotImplementedException();
+            return await _context.TodoItems.SingleOrDefaultAsync(item => item.Id == id && item.TodoId == todoId && item.UserId == userId);
         }
 
-        public Task<bool> UpdateTodoItemAsync(TodoItem todoItem, UpdateTodoItemDto dto)
+        public async Task<bool> UpdateTodoItemAsync(TodoItem todoItem, UpdateTodoItemDto dto)
         {
-            throw new NotImplementedException();
+            todoItem.Completed = dto.Completed;
+            todoItem.Description = dto.Description;
+
+            _context.TodoItems.Update(todoItem);
+            var updated = await _context.SaveChangesAsync() > 0;
+            
+            return updated;
         }
     }
 }

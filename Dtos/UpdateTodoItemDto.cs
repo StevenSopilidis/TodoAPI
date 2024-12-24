@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,7 +8,11 @@ namespace TodoAPI.Dtos
 {
     public class UpdateTodoItemDto
     {
+        [Required]
         public bool Completed { get; set; }
+
+        [Required]
+        [StringLength(300, MinimumLength = 3, ErrorMessage = "Todo item desciption must be between 3 and 300 characters long")]
         public string Description { get; set; }
         
     }

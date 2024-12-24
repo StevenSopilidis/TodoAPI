@@ -95,7 +95,6 @@ namespace TodoAPI.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var todo = await _todoRepo.GetTodoWithItemsAsync(id, userId);
-
             if (todo is null)
                 return NotFound();
             
@@ -103,7 +102,48 @@ namespace TodoAPI.Controllers
             if (todoItem is null)
                 return BadRequest("Could not create todo");
 
-            return Ok();
+            return Ok(todoItem);
+        }
+
+        [HttpGet("{todoId}/items/{todoItemId}")]
+        public async Task<IActionResult> GetTodoItem(Guid todoId, Guid todoItemId) {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var todoItem = await _todoItemRepo.GetTodoItemAsync(todoItemId, todoId, userId);
+            if (todoItem is null)
+                return NotFound();
+
+            return Ok(_mapper.Map<TodoItemDto>(todoItem));
+        }
+
+        [HttpPut("{todoId}/items/{todoItemId}")]
+        public async Task<IActionResult> UpdateTodoItem(Guid todoId, Guid todoItemId, [FromBody]UpdateTodoItemDto dto) {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            var todoItem = await _todoItemRepo.GetTodoItemAsync(todoItemId, todoId, userId);
+            if (todoItem is null)
+                return NotFound();
+
+            var updated = await _todoItemRepo.UpdateTodoItemAsync(todoItem, dto);
+            if(!updated)
+                return BadRequest("Could not update todo item");
+
+            return NoContent();
+        }
+
+        [HttpDelete("{todoId}/items/{todoItemId}")]
+        public async Task<IActionResult> DeleteTodoItem(Guid todoId, Guid todoItemId) {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            var todoItem = await _todoItemRepo.GetTodoItemAsync(todoItemId, todoId, userId);
+            if (todoItem is null)
+                return NotFound();
+
+            var deleted = await _todoItemRepo.DeleteTodoItemAsync(todoItem);
+            if(!deleted)
+                return BadRequest("Could not update todo item");
+
+            return NoContent();
         }
     }
 }
