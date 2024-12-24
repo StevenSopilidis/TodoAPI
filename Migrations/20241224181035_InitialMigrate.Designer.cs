@@ -12,7 +12,7 @@ using TodoAPI.Data;
 namespace TodoAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241222144755_InitialMigrate")]
+    [Migration("20241224181035_InitialMigrate")]
     partial class InitialMigrate
     {
         /// <inheritdoc />
@@ -171,6 +171,7 @@ namespace TodoAPI.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -193,10 +194,11 @@ namespace TodoAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("TodoId")
+                    b.Property<Guid>("TodoId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -327,20 +329,28 @@ namespace TodoAPI.Migrations
                 {
                     b.HasOne("TodoAPI.Models.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("TodoAPI.Models.TodoItem", b =>
                 {
-                    b.HasOne("TodoAPI.Models.Todo", null)
+                    b.HasOne("TodoAPI.Models.Todo", "Todo")
                         .WithMany("TodoItems")
-                        .HasForeignKey("TodoId");
+                        .HasForeignKey("TodoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("TodoAPI.Models.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Todo");
 
                     b.Navigation("User");
                 });

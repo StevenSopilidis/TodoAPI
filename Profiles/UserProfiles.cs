@@ -15,6 +15,7 @@ namespace TodoAPI.Profiles
             CreateMap<CreateUserDto, User>();
             CreateMap<User, UserCreatedDto>();
             CreateMap<User, UserDto>();
+            CreateMap<UserDto, User>();
         }
     }
 }

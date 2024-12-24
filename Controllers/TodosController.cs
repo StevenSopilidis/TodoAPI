@@ -18,16 +18,18 @@ namespace TodoAPI.Controllers
     public class TodosController : Controller
     {
         private readonly ITodoRepo _todoRepo;
+        private readonly ITodoItemRepo _todoItemRepo;
         private readonly IMapper _mapper;
 
-        public TodosController(IMapper mapper, ITodoRepo todoRepo) {
+        public TodosController(IMapper mapper, ITodoRepo todoRepo, ITodoItemRepo todoItemrepo) {
             _todoRepo = todoRepo;
+            _todoItemRepo = todoItemrepo;
             _mapper = mapper;
         }
 
         [HttpPost("")]
-        public async Task<IActionResult> CreateTodo(CreateTodoDto dto) {
-            var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        public async Task<IActionResult> PostTodo(CreateTodoDto dto) {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var todo = await _todoRepo.CreateTodoAsync(dto, userId);
 
@@ -39,9 +41,9 @@ namespace TodoAPI.Controllers
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTodo(Guid id) {
-            var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var todo = await _todoRepo.GetTodoAsync(id, userId);
+            var todo = await _todoRepo.GetTodoWithItemsAsync(id, userId);
 
             if (todo is null)
                 return NotFound();
@@ -52,7 +54,7 @@ namespace TodoAPI.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetTodos() {
-            var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var todos = await _todoRepo.GetTodosAsync(userId);
             return Ok(todos);
@@ -60,7 +62,7 @@ namespace TodoAPI.Controllers
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTodo([FromRoute]Guid id, [FromBody]UpdateTodoDto dto) {
-            var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             
             var todo = await _todoRepo.GetTodoAsync(id, userId);
             if (todo is null) 
@@ -75,7 +77,7 @@ namespace TodoAPI.Controllers
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTodo(Guid id) {
-            var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var todo = await _todoRepo.GetTodoAsync(id, userId);
             if (todo is null)
@@ -86,6 +88,22 @@ namespace TodoAPI.Controllers
                 return BadRequest("Could not delete todo");
 
             return NoContent();
+        }
+
+        [HttpPost("{id}/items")]
+        public async Task<IActionResult> PostTodoItem(Guid id, CreateTodoItemDto dto) {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var todo = await _todoRepo.GetTodoWithItemsAsync(id, userId);
+
+            if (todo is null)
+                return NotFound();
+            
+            var todoItem = await _todoItemRepo.CreateTodoItemAsync(userId, _mapper.Map<Todo>(todo), dto);
+            if (todoItem is null)
+                return BadRequest("Could not create todo");
+
+            return Ok();
         }
     }
 }
