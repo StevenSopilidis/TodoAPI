@@ -136,3 +136,8 @@ C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\obj\Debug\net8.0\refint\To
 C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\obj\Debug\net8.0\TodoApiTests.pdb
 C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\obj\Debug\net8.0\TodoApiTests.genruntimeconfig.cache
 C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\obj\Debug\net8.0\ref\TodoApiTests.dll
+C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\bin\Debug\net8.0\Castle.Core.dll
+C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\bin\Debug\net8.0\Moq.dll
+C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\bin\Debug\net8.0\MockQueryable.Core.dll
+C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\bin\Debug\net8.0\MockQueryable.EntityFrameworkCore.dll
+C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\bin\Debug\net8.0\MockQueryable.Moq.dll
