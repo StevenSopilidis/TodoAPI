@@ -141,3 +141,8 @@ C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\bin\Debug\net8.0\Moq.dll
 C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\bin\Debug\net8.0\MockQueryable.Core.dll
 C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\bin\Debug\net8.0\MockQueryable.EntityFrameworkCore.dll
 C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\bin\Debug\net8.0\MockQueryable.Moq.dll
+C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\bin\Debug\net8.0\Moq.EntityFrameworkCore.dll
+C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.InMemory.dll
+C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\bin\Debug\net8.0\Microsoft.Extensions.Caching.Abstractions.dll
+C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\bin\Debug\net8.0\Microsoft.Extensions.Primitives.dll
+C:\Users\StevenSopilidis\Desktop\TodoApp\TodoApiTests\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll
