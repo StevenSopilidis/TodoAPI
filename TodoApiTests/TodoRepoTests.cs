@@ -13,35 +13,24 @@ using TodoAPI.Data;
 using TodoAPI.Dtos;
 using TodoAPI.Models;
 using TodoAPI.Repositories;
+using TodoApiTests.Utils;
 using Xunit;
 
 namespace TodoApiTests
 {
-    public class TodoRepoTests
+    public class TodoRepoTests : IClassFixture<AppDbContextFixture>
     {
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<ILogger<TodoRepo>> _loggerMock;
         private readonly Mock<AppDbContext> _contextMock;
         private readonly AppDbContext _context;
         private readonly TodoRepo _todoRepo;
-        private readonly string _validUserId = "user-id";
+        private readonly string _validUserId = Guid.NewGuid().ToString();
 
-        public TodoRepoTests() {
+        public TodoRepoTests(AppDbContextFixture fixture) {
             _mapperMock = new Mock<IMapper>();
-
             _loggerMock = new Mock<ILogger<TodoRepo>>();
-
-            // create in memory db
-            var opts = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase("TestDb")
-                .Options;
-
-            _context = new AppDbContext(opts);
-            _context.Database.EnsureDeleted();
-            _context.Database.EnsureDeleted();
-            _context.Users.Add(new User { Id = _validUserId });
-            _context.SaveChanges();
-
+            _context = fixture.Context;
             _todoRepo = new TodoRepo(_mapperMock.Object, _loggerMock.Object, _context);
         }   
 
@@ -57,7 +46,6 @@ namespace TodoApiTests
             var createdTodo = await CreateTodo(todoName);
 
             var todo = await _todoRepo.GetTodoAsync(createdTodo.Id, _validUserId);
-
             Assert.NotNull(todo);
             Assert.Equal(todoName, todo.Name);
             Assert.Equal(_validUserId, todo.UserId);
@@ -66,7 +54,6 @@ namespace TodoApiTests
         [Fact]
         public async Task GetTodoAsync_ReturnsNull_WhenTodoDoesNotExists() {
             var todo = await _todoRepo.GetTodoAsync(Guid.NewGuid(), _validUserId);
-
             Assert.Null(todo);
         }
 
@@ -87,15 +74,15 @@ namespace TodoApiTests
             var todoName = "todoName";
             var dto = await CreateTodo(todoName);
 
-            var todo = _context.Todos.SingleOrDefault(todo => todo.Name == todoName);
+            var todo = await _todoRepo.GetTodoAsync(dto.Id, _validUserId);
 
             Assert.NotNull(todo);
 
             var updatedTodoDto = new UpdateTodoDto{
                 Name = "UpdatedName"
             };
+
             var updated = await _todoRepo.UpdateTodoAsync(todo, updatedTodoDto);
-            
             Assert.True(updated);
 
             var updatedDto = await _todoRepo.GetTodoAsync(todo.Id, _validUserId);
@@ -108,8 +95,7 @@ namespace TodoApiTests
             var todoName = "todoName";
             var dto = await CreateTodo(todoName);
 
-            var todo = _context.Todos.SingleOrDefault(todo => todo.Name == todoName);
-
+            var todo = await _todoRepo.GetTodoAsync(dto.Id, _validUserId);
             Assert.NotNull(todo);
 
             var deleted = await _todoRepo.DeleteTodoAsync(todo);
@@ -135,7 +121,6 @@ namespace TodoApiTests
             _mapperMock.Setup(m => m.Map<TodoDto>(todoObj)).Returns(new TodoDto {Name = name, Id=todoId});
 
             var todo = await _todoRepo.CreateTodoAsync(dto, _validUserId);
-
             Assert.NotNull(todo);
             Assert.Equal(todoId, todo.Id);
             Assert.Equal(name, todo.Name);
