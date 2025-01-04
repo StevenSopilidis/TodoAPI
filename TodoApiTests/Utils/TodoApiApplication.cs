@@ -25,38 +25,43 @@ namespace TodoApiTests
     // integration test for user Api
     internal class TodoApiApplication : WebApplicationFactory<Program>
     {
-        private static readonly Lazy<TodoApiApplication> _instance = new Lazy<TodoApiApplication>(() => new TodoApiApplication());
+        private static readonly Lazy<TodoApiApplication> _instance = new Lazy<TodoApiApplication>(() => {
+            var app = new TodoApiApplication();
+            app.ConfigureApp();
+            return app;
+        });
         public static TodoApiApplication Instance = _instance.Value;
 
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
-        {
+        private void ConfigureApp()
+        {   
             // override service registration for testing perpoces
-            builder.ConfigureTestServices(services => {
-                // add test database
-                services.RemoveAll(typeof(DbContextOptions<AppDbContext>)); // remove real database connection string
+            WithWebHostBuilder(builder => {
+                builder.ConfigureTestServices(services => {
+                    // add test database
+                    services.RemoveAll(typeof(DbContextOptions<AppDbContext>)); // remove real database connection string
 
-                var configuration = new ConfigurationBuilder()
-                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                    .Build();
+                    var configuration = new ConfigurationBuilder()
+                        .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                        .Build();
 
-                services.AddApplicationServices(configuration);
+                    services.AddApplicationServices(configuration);
 
-                var connectionString = configuration.GetConnectionString("TEST_DB_CONNECTION_STRING");
+                    var connectionString = configuration.GetConnectionString("TEST_DB_CONNECTION_STRING");
 
-                services.AddDbContext<AppDbContext>(opts => {
-                    opts.UseNpgsql(connectionString);
+                    services.AddDbContext<AppDbContext>(opts => {
+                        opts.UseNpgsql(connectionString);
+                    });
+
+                    // ensure deletion on database
+                    var dbContext = services.BuildServiceProvider();
+                    var scoped = dbContext.CreateScope();
+                    var context = scoped.ServiceProvider.GetService<AppDbContext>();
+
+                    context.Database.EnsureDeleted();
+                    context.Database.Migrate();
                 });
-
-                // ensure deletion on database
-                var dbContext = services.BuildServiceProvider();
-                var scoped = dbContext.CreateScope();
-                var context = scoped.ServiceProvider.GetService<AppDbContext>();
-
-                context.Database.EnsureDeleted();
-                context.Database.Migrate();
             });
-
         }
 
     }

@@ -84,11 +84,10 @@ namespace TodoApiTests
         [Fact]
         public async Task SignUpEndpoint_Returns400_WhenUsernameOrEmailAlreadyTaken() {
             await _fixture.ClearDatabase();
-            await _fixture.ClearDatabase();
 
             var request = new CreateUserDto{
-                Username= "test",
-                Email= "test@test.com",
+                Username= "not_taken",
+                Email= "not_taken@test.com",
                 Password= "pass1234@",
             };
 
