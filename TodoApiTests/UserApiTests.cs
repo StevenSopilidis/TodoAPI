@@ -17,6 +17,8 @@ namespace TodoApiTests
         private readonly TodoApplicationFixture _fixture;
         private readonly HttpClient _client;
 
+        private readonly string _endpoint = "/user/signup";
+
         public UserApiTests(TodoApplicationFixture fixture) {
             _fixture = fixture;
             _client = fixture.Client;
@@ -32,7 +34,7 @@ namespace TodoApiTests
                 Password= "pass1234@",
             };
 
-            var res = await _client.PostAsJsonAsync("/user/signup", request);
+            var res = await _client.PostAsJsonAsync(_endpoint, request);
             res.EnsureSuccessStatusCode();
 
             var jsonString = await res.Content.ReadAsStringAsync();
@@ -51,7 +53,7 @@ namespace TodoApiTests
                 Password= "pass1234@",
             };
 
-            var res = await _client.PostAsJsonAsync("/user/signup", request);
+            var res = await _client.PostAsJsonAsync(_endpoint, request);
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
         }
 
@@ -63,7 +65,7 @@ namespace TodoApiTests
                 Password= "pass1234@",
             };
 
-            var res = await _client.PostAsJsonAsync("/user/signup", request);
+            var res = await _client.PostAsJsonAsync(_endpoint, request);
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
         }
         
@@ -75,7 +77,7 @@ namespace TodoApiTests
                 Password= "sd", // invalid
             };
 
-            var res = await _client.PostAsJsonAsync("/user/signup", request);
+            var res = await _client.PostAsJsonAsync(_endpoint, request);
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
         }
 
@@ -90,7 +92,7 @@ namespace TodoApiTests
                 Password= "pass1234@",
             };
 
-            var res = await _client.PostAsJsonAsync("/user/signup", request);
+            var res = await _client.PostAsJsonAsync(_endpoint, request);
             res.EnsureSuccessStatusCode();
 
             var jsonString = await res.Content.ReadAsStringAsync();
@@ -100,7 +102,7 @@ namespace TodoApiTests
             Assert.Equal(request.Email, userCreated.Email);
             Assert.Equal(request.Username, userCreated.Username);
 
-            res = await _client.PostAsJsonAsync("/user/signup", request);
+            res = await _client.PostAsJsonAsync(_endpoint, request);
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
         }
     }
