@@ -39,7 +39,7 @@ namespace TodoAPI.Controllers
         public async Task<IActionResult> Login(LoginDto dto) {
             var user = await _userRepo.GetUserAsync(dto.Email);
             if (user is null)
-                return BadRequest("Invalid email or passord provided");
+                return Unauthorized();
 
             var signIn = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
             if (signIn.Succeeded is false)

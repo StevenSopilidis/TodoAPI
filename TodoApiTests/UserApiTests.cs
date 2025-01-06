@@ -26,13 +26,7 @@ namespace TodoApiTests
         
         [Fact]
         public async Task SignUpEndpoint_ReturnsSuccess_WhenValidData() {
-            await _fixture.ClearDatabase();
-
-            var request = new CreateUserDto{
-                Username= "test",
-                Email= "test@test.com",
-                Password= "pass1234@",
-            };
+            var request = UserGenerator.GenerateUser();
 
             var res = await _client.PostAsJsonAsync(_endpoint, request);
             res.EnsureSuccessStatusCode();
@@ -83,13 +77,7 @@ namespace TodoApiTests
 
         [Fact]
         public async Task SignUpEndpoint_Returns400_WhenUsernameOrEmailAlreadyTaken() {
-            await _fixture.ClearDatabase();
-
-            var request = new CreateUserDto{
-                Username= "not_taken",
-                Email= "not_taken@test.com",
-                Password= "pass1234@",
-            };
+            var request = UserGenerator.GenerateUser();
 
             var res = await _client.PostAsJsonAsync(_endpoint, request);
             res.EnsureSuccessStatusCode();

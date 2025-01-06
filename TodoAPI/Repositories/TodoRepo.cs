@@ -69,7 +69,7 @@ namespace TodoAPI.Repositories
 
         public async Task<ICollection<TodoDto>> GetTodosAsync(string userId)
         {
-            return await _context.Todos.Select(todo => todo.User.Id == userId).ProjectTo<TodoDto>(_mapper.ConfigurationProvider).ToListAsync();
+            return await _context.Todos.Where(todo => todo.User.Id == userId).ProjectTo<TodoDto>(_mapper.ConfigurationProvider).ToListAsync();
         }
 
         public async Task<bool> UpdateTodoAsync(Todo todo, UpdateTodoDto dto)

@@ -26,13 +26,7 @@ namespace TodoApiTests
 
         [Fact]
         public async Task LoginEndpoint_ReturnsSuccess_WhenValidData() {
-            await _fixture.ClearDatabase();
-
-            var createUserDto = new CreateUserDto{ 
-                Username= "login",
-                Email= "login@test.com",
-                Password= "psasd1234@"
-            };
+            var createUserDto = UserGenerator.GenerateUser();
 
             await SignUp(createUserDto);
 
@@ -54,13 +48,7 @@ namespace TodoApiTests
 
         [Fact]
         public async Task LoginEndpoint_Returns401_WhenInvalidEmail() {
-            await _fixture.ClearDatabase();
-
-            var createUserDto = new CreateUserDto{ 
-                Username= "login",
-                Email= "login@test.com",
-                Password= "psasd1234@"
-            };
+            var createUserDto = UserGenerator.GenerateUser();
 
             await SignUp(createUserDto);
 
@@ -75,13 +63,7 @@ namespace TodoApiTests
 
         [Fact]
         public async Task LoginEndpoint_Returns401_WhenInvalidPassword() {
-            await _fixture.ClearDatabase();
-
-            var createUserDto = new CreateUserDto{ 
-                Username= "login",
-                Email= "login@test.com",
-                Password= "psasd1234@"
-            };
+            var createUserDto = UserGenerator.GenerateUser();
 
             await SignUp(createUserDto);
 
@@ -94,7 +76,7 @@ namespace TodoApiTests
             Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
         }
 
-        public async Task SignUp(CreateUserDto dto) {
+        private async Task SignUp(CreateUserDto dto) {
             var res = await _client.PostAsJsonAsync(_signUpEndpoint, dto);
             res.EnsureSuccessStatusCode();
         }
