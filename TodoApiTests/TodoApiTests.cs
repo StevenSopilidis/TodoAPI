@@ -20,6 +20,14 @@ namespace TodoApiTests
         private readonly Func<string, string> _getTodoEndpoint = (todoId) => $"/todos/{todoId}";
         private readonly Func<string, string> _updateTodoEndpoint = (todoId) => $"/todos/{todoId}";
         private readonly Func<string, string> _deleteTodoEndpoint = (todoId) => $"/todos/{todoId}";
+        private readonly Func<string, string> _createTodoItemEndpoint = (todoId) => $"/todos/{todoId}/items";
+        private readonly Func<string, string, string> _getTodoItemEndpoint =
+            (todoId, todoItemId) => $"/todos/{todoId}/items/{todoItemId}";
+        private readonly Func<string, string, string> _updateTodoItemEndpoint =
+            (todoId, todoItemId) => $"/todos/{todoId}/items/{todoItemId}";
+        private readonly Func<string, string, string> _deleteTodoItemEndpoint =
+            (todoId, todoItemId) => $"/todos/{todoId}/items/{todoItemId}";
+
         private readonly string _getTodos = "/todos";
 
         public TodoApiTests(TodoApplicationFixture fixture) {
@@ -28,7 +36,7 @@ namespace TodoApiTests
         }
 
         [Fact]
-        public async Task PostTodo_ReturnsSuccess_WhenValidDataProvided() {
+        public async Task PostTodo_Returns200_WhenValidDataProvided() {
             await SignUpAndLogin();
 
             var dto = new CreateTodoDto{
@@ -68,7 +76,7 @@ namespace TodoApiTests
 
             var res = await _client.GetAsync(_getTodoEndpoint(todoDto.Id.ToString()));
             res.EnsureSuccessStatusCode();
-            var dtoRes = await ParseResponse(res);
+            var dtoRes = await ParseResponse<TodoDto>(res);
             Assert.NotNull(dtoRes);
             Assert.Equal(dto.Name, dtoRes.Name);
             Assert.Empty(dtoRes.TodoItems);
@@ -139,7 +147,7 @@ namespace TodoApiTests
         }
 
         [Fact]
-        public async Task UpdateTodo_ReturnsNoContent_WhenSuccessfullyUpdatedTodo() {
+        public async Task UpdateTodo_Returns201_WhenSuccessfullyUpdatedTodo() {
             await SignUpAndLogin();
         
             var dto = new CreateTodoDto{
@@ -156,13 +164,13 @@ namespace TodoApiTests
 
             res = await _client.GetAsync(_getTodoEndpoint(todoDto.Id.ToString()));
             res.EnsureSuccessStatusCode();
-            var dtoRes = await ParseResponse(res);
+            var dtoRes = await ParseResponse<TodoDto>(res);
             Assert.NotNull(dtoRes);
             Assert.Equal(updateTodoDto.Name, dtoRes.Name);
         }
 
         [Fact]
-        public async Task UpdateTodo_ReturnsNotFound_WhenInvalidId() {
+        public async Task UpdateTodo_Returns404_WhenInvalidId() {
             await SignUpAndLogin();
             
             var updateDto = new UpdateTodoDto {
@@ -174,7 +182,7 @@ namespace TodoApiTests
         }
 
         [Fact]
-        public async Task UpdateTodo_ReturnsNotFound_WhenInvalidAnauthroized() {
+        public async Task UpdateTodo_Returns404_WhenInvalidAnauthroized() {
            await SignUpAndLogin();
 
             var dto = new CreateTodoDto{
@@ -192,7 +200,7 @@ namespace TodoApiTests
         }
 
         [Fact]
-        public async Task DeleteTodo_ReturnsNoContent_WhenSuccessfullyDeletedTodo() {
+        public async Task DeleteTodo_Returns201_WhenSuccessfullyDeletedTodo() {
             await SignUpAndLogin();
         
             var dto = new CreateTodoDto{
@@ -209,7 +217,7 @@ namespace TodoApiTests
         }
 
         [Fact]
-        public async Task DeleteTodo_ReturnsNotFound_WhenInvalidAnauthroized() {
+        public async Task DeleteTodo_Returns404_WhenInvalidAnauthroized() {
             await SignUpAndLogin();
 
             var dto = new CreateTodoDto{
@@ -223,10 +231,290 @@ namespace TodoApiTests
         }
 
         [Fact]
-        public async Task DeleteTodo_ReturnsNotFound_WhenInvalidId() {
+        public async Task DeleteTodo_Returns404_WhenInvalidId() {
             await SignUpAndLogin();
             
             var res = await _client.DeleteAsync(_deleteTodoEndpoint(Guid.NewGuid().ToString()));
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task PostTodoItem_Returns404_WhenInvalidTodoId() {
+            await SignUpAndLogin();
+
+            var dto = new CreateTodoItemDto{
+                Description= "Test Description"
+            };
+
+            var res = await _client.PostAsJsonAsync(_createTodoItemEndpoint(Guid.NewGuid().ToString()), dto);
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task PostTodoItem_Returns404_WhenUserTriesToCreateTodoItemToNotBelongingTodo() {
+            await SignUpAndLogin();
+
+            var dto = new CreateTodoDto{
+                Name= "name"
+            };
+            var todoDto = await CreateValidTodo(dto);
+
+            await SignUpAndLogin();
+
+            var createTodoItemDto = new CreateTodoItemDto{
+                Description= "Test description"
+            };
+            var res = await _client.PostAsJsonAsync(_createTodoItemEndpoint(todoDto.Id.ToString()), createTodoItemDto);
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task PostTodoItem_Returns200_WhenTodoItemWasCreatedSuccessfully() {
+            await SignUpAndLogin();
+
+            var createTodoDto = new CreateTodoDto{
+                Name= "name"
+            };
+            var todoDto = await CreateValidTodo(createTodoDto);
+
+            var createTodoItemDto = new CreateTodoItemDto{
+                Description= "Test item"
+            };
+            await CreateValidTodoItem(todoDto.Id, createTodoItemDto);
+        }
+
+        [Fact]
+        public async Task GetTodoItem_Returns404_WhenTodoItemDoesNotExist() {
+            await SignUpAndLogin();
+
+            var createTodoDto = new CreateTodoDto{
+                Name= "name"
+            };
+            var todoDto = await CreateValidTodo(createTodoDto);
+
+            var res = await _client.GetAsync(_getTodoItemEndpoint(todoDto.Id.ToString(), Guid.NewGuid().ToString()));
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetTodoItem_Returns404_WhenTodoDoesNotExist() {
+            await SignUpAndLogin();
+
+            var res = await _client.GetAsync(_getTodoItemEndpoint(Guid.NewGuid().ToString(), Guid.NewGuid().ToString()));
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetTodoItem_Returns404_WhenUserDoesNotOwnTodoItem() {
+            await SignUpAndLogin();
+
+            var createTodoDto = new CreateTodoDto{
+                Name= "name"
+            };
+            var todoDto = await CreateValidTodo(createTodoDto);
+
+            var createTodoItemDto = new CreateTodoItemDto{
+                Description="Test"
+            };
+            var todoItemDto = await CreateValidTodoItem(todoDto.Id, createTodoItemDto);
+
+            await SignUpAndLogin();
+            var res = await _client.GetAsync(_getTodoItemEndpoint(todoDto.Id.ToString(), todoItemDto.Id.ToString()));
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetTodoItem_Returns200_WhenEverythingRunsCorrectly() {
+            await SignUpAndLogin();
+
+            var createTodoDto = new CreateTodoDto{
+                Name= "name"
+            };
+            var todoDto = await CreateValidTodo(createTodoDto);
+
+            var createTodoItemDto = new CreateTodoItemDto{
+                Description="Test"
+            };
+            var todoItemDto = await CreateValidTodoItem(todoDto.Id, createTodoItemDto);
+
+            var res = await _client.GetAsync(_getTodoItemEndpoint(todoDto.Id.ToString(), todoItemDto.Id.ToString()));
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+
+            var body = await ParseResponse<TodoItemDto>(res);
+            Assert.NotNull(body);
+            Assert.Equal(createTodoItemDto.Description, body.Description);
+            Assert.False(body.Completed);
+        }
+
+        [Fact]
+        public async Task PutTodoItem_Returns404_WhenTodoItemDoesNotExist() {
+            await SignUpAndLogin();
+
+            var createTodoDto = new CreateTodoDto{
+                Name= "name"
+            };
+            var todoDto = await CreateValidTodo(createTodoDto);
+
+            var updateTodoItemDto = new UpdateTodoItemDto{
+                Description="Updated",
+                Completed= true
+            };
+
+            var res = await _client.PutAsJsonAsync(
+                _updateTodoItemEndpoint(todoDto.Id.ToString(), Guid.NewGuid().ToString()),
+                 updateTodoItemDto
+            );
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task PutTodoItem_Returns404_WhenTodoDoesNotExist() {
+            await SignUpAndLogin();
+
+            var updateTodoItemDto = new UpdateTodoItemDto{
+                Description="Updated",
+                Completed= true
+            };
+
+            var res = await _client.PutAsJsonAsync(
+                _updateTodoItemEndpoint(Guid.NewGuid().ToString(), Guid.NewGuid().ToString()), 
+                updateTodoItemDto
+            );
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task PutTodoItem_Returns404_WhenUserDoesNotOwnTodoItem() {
+            await SignUpAndLogin();
+
+            var createTodoDto = new CreateTodoDto{
+                Name= "name"
+            };
+            var todoDto = await CreateValidTodo(createTodoDto);
+
+            var createTodoItemDto = new CreateTodoItemDto{
+                Description="Test"
+            };
+            var todoItemDto = await CreateValidTodoItem(todoDto.Id, createTodoItemDto);
+
+            await SignUpAndLogin();
+
+            var updateTodoItemDto = new UpdateTodoItemDto{
+                Description="Updated",
+                Completed= true
+            };
+            var res = await _client.PutAsJsonAsync(
+                _updateTodoItemEndpoint(Guid.NewGuid().ToString(), Guid.NewGuid().ToString()), 
+                updateTodoItemDto
+            );
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task PutTodoItem_Returns201_WhenEverythingRunsCorrectly() {
+            await SignUpAndLogin();
+
+            var createTodoDto = new CreateTodoDto{
+                Name= "name"
+            };
+            var todoDto = await CreateValidTodo(createTodoDto);
+
+            var createTodoItemDto = new CreateTodoItemDto{
+                Description="Test"
+            };
+            var todoItemDto = await CreateValidTodoItem(todoDto.Id, createTodoItemDto);
+
+            var updateTodoItemDto = new UpdateTodoItemDto{
+                Description="Updated",
+                Completed= true
+            };
+            var res = await _client.PutAsJsonAsync(
+                _updateTodoItemEndpoint(todoDto.Id.ToString(), todoItemDto.Id.ToString()), 
+                updateTodoItemDto
+            );
+            Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
+
+            res = await _client.GetAsync(_getTodoItemEndpoint(todoDto.Id.ToString(), todoItemDto.Id.ToString()));
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+
+            var body = await ParseResponse<TodoItemDto>(res);
+            Assert.NotNull(body);
+            Assert.Equal(updateTodoItemDto.Description, body.Description);
+            Assert.Equal(updateTodoItemDto.Completed, body.Completed);
+        }
+
+        [Fact]
+        public async Task DeleteTodoItem_Returns404_WhenTodoItemDoesNotExist() {
+            await SignUpAndLogin();
+
+            var createTodoDto = new CreateTodoDto{
+                Name= "name"
+            };
+            var todoDto = await CreateValidTodo(createTodoDto);
+
+            var res = await _client.DeleteAsync(
+                _updateTodoItemEndpoint(todoDto.Id.ToString(), Guid.NewGuid().ToString())
+            );
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task DeleteTodoItem_Returns404_WhenTodoDoesNotExist() {
+            await SignUpAndLogin();
+
+            var updateTodoItemDto = new UpdateTodoItemDto{
+                Description="Updated",
+                Completed= true
+            };
+
+            var res = await _client.DeleteAsync(
+                _updateTodoItemEndpoint(Guid.NewGuid().ToString(), Guid.NewGuid().ToString())
+            );
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task DeleteTodoItem_Returns404_WhenUserDoesNotOwnTodoItem() {
+            await SignUpAndLogin();
+
+            var createTodoDto = new CreateTodoDto{
+                Name= "name"
+            };
+            var todoDto = await CreateValidTodo(createTodoDto);
+
+            var createTodoItemDto = new CreateTodoItemDto{
+                Description="Test"
+            };
+            var todoItemDto = await CreateValidTodoItem(todoDto.Id, createTodoItemDto);
+
+            await SignUpAndLogin();
+
+            var res = await _client.DeleteAsync(
+                _updateTodoItemEndpoint(todoDto.Id.ToString(), todoItemDto.Id.ToString())
+            );
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task DeleteTodoItem_Returns201_WhenEverythingRunsCorrectly() {
+            await SignUpAndLogin();
+
+            var createTodoDto = new CreateTodoDto{
+                Name= "name"
+            };
+            var todoDto = await CreateValidTodo(createTodoDto);
+
+            var createTodoItemDto = new CreateTodoItemDto{
+                Description="Test"
+            };
+            var todoItemDto = await CreateValidTodoItem(todoDto.Id, createTodoItemDto);
+
+            var res = await _client.DeleteAsync(
+                _updateTodoItemEndpoint(todoDto.Id.ToString(), todoItemDto.Id.ToString())
+            );
+            Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
+
+            res = await _client.GetAsync(_getTodoItemEndpoint(todoDto.Id.ToString(), todoItemDto.Id.ToString()));
             Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
         }
 
@@ -274,7 +562,7 @@ namespace TodoApiTests
             var res = await _client.PostAsJsonAsync(_createTodoEndpoint, dto);
             res.EnsureSuccessStatusCode();
 
-            var dtoRes = await ParseResponse(res);
+            var dtoRes = await ParseResponse<TodoDto>(res);
             Assert.NotNull(dtoRes);
             Assert.Equal(dto.Name, dtoRes.Name);
             Assert.Empty(dtoRes.TodoItems);
@@ -282,9 +570,21 @@ namespace TodoApiTests
             return dtoRes;
         }
 
-        private async Task<TodoDto?> ParseResponse(HttpResponseMessage res) {
+        private async Task<TodoItemDto> CreateValidTodoItem(Guid todoId, CreateTodoItemDto dto) {
+            var res = await _client.PostAsJsonAsync(_createTodoItemEndpoint(todoId.ToString()), dto);
+            res.EnsureSuccessStatusCode();
+
+            var dtoRes = await ParseResponse<TodoItemDto>(res);
+            Assert.NotNull(dtoRes);
+            Assert.Equal(dto.Description, dtoRes.Description);
+            Assert.False(dtoRes.Completed);
+
+            return dtoRes;
+        }
+
+        private async Task<T?> ParseResponse<T>(HttpResponseMessage res) {
             var jsonString = await res.Content.ReadAsStringAsync();
-            var dtoRes = JsonSerializer.Deserialize<TodoDto>(jsonString, new JsonSerializerOptions{ PropertyNameCaseInsensitive = true});
+            var dtoRes = JsonSerializer.Deserialize<T>(jsonString, new JsonSerializerOptions{ PropertyNameCaseInsensitive = true});
             return dtoRes;
         }
     }

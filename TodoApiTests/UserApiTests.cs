@@ -25,7 +25,7 @@ namespace TodoApiTests
         }
         
         [Fact]
-        public async Task SignUpEndpoint_ReturnsSuccess_WhenValidData() {
+        public async Task SignUpEndpoint_Returns200_WhenValidData() {
             var request = UserGenerator.GenerateUser();
 
             var res = await _client.PostAsJsonAsync(_endpoint, request);
